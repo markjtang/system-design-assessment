@@ -1,0 +1,73 @@
+graph TD
+    subgraph "User Interaction Layer"
+        Client["Clients (Web/Mobile Browsers)"]
+    end
+
+    subgraph "Edge & Entry Layer"
+        CDN["CDN (AWS CloudFront)"]
+        LB["Load Balancer (AWS ALB)"]
+        APIGW["API Gateway (AWS API Gateway)"]
+    end
+
+    subgraph "Application & Data Layer"
+        CoreAPIService["Core API Service (Node.js/NestJS on AWS ECS/EKS or Elastic Beanstalk)"]
+        Cache["Cache: Redis (AWS ElastiCache)"]
+        DB["Database: PostgreSQL (AWS RDS)"]
+    end
+
+    subgraph "Video Processing Pipeline (Asynchronous)"
+        S3_Raw["Raw Video Storage (AWS S3 Bucket)"]
+        S3_Processed["Processed Video Storage (AWS S3 Bucket)"]
+        VideoProcessingOrchestrator["Video Processing Orchestrator (AWS Lambda)"]
+        MediaConvertService["Video Transcoding (AWS Elemental MediaConvert)"]
+        ProcessingEvents["Events (AWS SQS/SNS/EventBridge)"]
+    end
+
+%% --- Core User Flows (Viewing & Interaction) ---
+    Client -- "Request Video Page / API Data (e.g., video list, comments)" --> LB
+    LB -- "Forward Request" --> APIGW
+    APIGW -- "Route to appropriate endpoint" --> CoreAPIService
+
+    CoreAPIService -- "Fetch/Update Data (user info, video metadata)" --> DB
+    CoreAPIService -- "Check/Store Session, Cached Data" --> Cache
+    CoreAPIService -- "Return API Response" --> APIGW
+    APIGW -- "Return API Response" --> LB
+    LB -- "Return API Response" --> Client
+
+    Client -- "Request Static Assets (HTML, CSS, JS, Images)" --> CDN
+    Client -- "Request Video Stream (HLS/DASH segments)" --> CDN
+    CDN -- "Serves static assets (from S3 or App Origin)" --> Client
+    CDN -- "Serves video segments from S3_Processed" --> Client
+
+%% --- Video Upload & Processing Flow ---
+    Client -- "UI requests presigned URL from Core API" --> CoreAPIService
+    CoreAPIService -- "Generates presigned URL for S3_Raw, records initial metadata" --> DB
+    CoreAPIService -- "Returns presigned URL to Client" --> Client
+    Client -- "Uploads raw video file directly" --> S3_Raw
+
+    S3_Raw -- "S3 Event (e.g., ObjectCreated)" --> ProcessingEvents
+    ProcessingEvents -- "Triggers Lambda" --> VideoProcessingOrchestrator
+    VideoProcessingOrchestrator -- "Initiates Transcoding Job (input: S3_Raw, output: S3_Processed)" --> MediaConvertService
+    MediaConvertService -- "Reads Raw Video" --> S3_Raw
+    MediaConvertService -- "Writes Transcoded Segments & Playlists" --> S3_Processed
+    MediaConvertService -- "Emits Completion Event (e.g., to CloudWatch Events/SNS)" --> ProcessingEvents
+    ProcessingEvents -- "Triggers Lambda (or CoreAPIService via webhook/notification)" --> VideoProcessingOrchestrator
+    VideoProcessingOrchestrator -- "Updates Video Status & Metadata in DB" --> CoreAPIService
+%% Or directly updates DB if IAM permissions allow and logic is simple
+
+%% --- Styling (Optional, for better visual separation) ---
+    classDef client fill:#C9DAF8,stroke:#333,stroke-width:2px;
+    classDef edge fill:#A2D2FF,stroke:#333,stroke-width:2px;
+    classDef app fill:#BDE0FE,stroke:#333,stroke-width:2px;
+    classDef data fill:#FFD6A5,stroke:#333,stroke-width:2px;
+    classDef pipeline fill:#FDE2E4,stroke:#333,stroke-width:2px;
+    classDef storage fill:#FFF2CC,stroke:#333,stroke-width:2px;
+    classDef eventbus fill:#E6E6FA,stroke:#333,stroke-width:2px;
+
+    class Client client;
+    class CDN,LB,APIGW edge;
+    class CoreAPIService app;
+    class Cache,DB data;
+    class S3_Raw,S3_Processed storage;
+    class VideoProcessingOrchestrator,MediaConvertService pipeline;
+    class ProcessingEvents eventbus;
