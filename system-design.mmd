@@ -5,12 +5,11 @@ graph TD
 
     subgraph "Edge & Entry Layer"
         CDN["CDN (AWS CloudFront)"]
-        LB["Load Balancer (AWS ALB)"]
         APIGW["API Gateway (AWS API Gateway)"]
     end
 
     subgraph "Application & Data Layer"
-        CoreAPIService["Core API Service (Node.js/NestJS on AWS ECS/EKS or Elastic Beanstalk)"]
+        CoreAPIService["Core API Service (Node.js/NestJS on AWS Lambda/ECS)"]
         Cache["Cache: Redis (AWS ElastiCache)"]
         DB["Database: PostgreSQL (AWS RDS)"]
     end
@@ -24,25 +23,26 @@ graph TD
     end
 
 %% --- Core User Flows (Viewing & Interaction) ---
-    Client -- "Request Video Page / API Data (e.g., video list, comments)" --> LB
-    LB -- "Forward Request" --> APIGW
+    Client -- "Request API Data (e.g., video list, user info, comments)" --> APIGW
     APIGW -- "Route to appropriate endpoint" --> CoreAPIService
 
     CoreAPIService -- "Fetch/Update Data (user info, video metadata)" --> DB
     CoreAPIService -- "Check/Store Session, Cached Data" --> Cache
     CoreAPIService -- "Return API Response" --> APIGW
-    APIGW -- "Return API Response" --> LB
-    LB -- "Return API Response" --> Client
+    APIGW -- "Return API Response" --> Client
 
     Client -- "Request Static Assets (HTML, CSS, JS, Images)" --> CDN
-    Client -- "Request Video Stream (HLS/DASH segments)" --> CDN
+    Client -- "Request Video Stream (HLS/DASH segments from metadata URL)" --> CDN
     CDN -- "Serves static assets (from S3 or App Origin)" --> Client
     CDN -- "Serves video segments from S3_Processed" --> Client
+%% API Gateway could also be an origin for CDN for API caching
 
 %% --- Video Upload & Processing Flow ---
-    Client -- "UI requests presigned URL from Core API" --> CoreAPIService
+    Client -- "UI requests presigned URL from Core API (via APIGW)" --> APIGW
+    APIGW -- "Forward to CoreAPIService" --> CoreAPIService
     CoreAPIService -- "Generates presigned URL for S3_Raw, records initial metadata" --> DB
-    CoreAPIService -- "Returns presigned URL to Client" --> Client
+    CoreAPIService -- "Returns presigned URL" --> APIGW
+    APIGW -- "Returns presigned URL to Client" --> Client
     Client -- "Uploads raw video file directly" --> S3_Raw
 
     S3_Raw -- "S3 Event (e.g., ObjectCreated)" --> ProcessingEvents
@@ -52,7 +52,7 @@ graph TD
     MediaConvertService -- "Writes Transcoded Segments & Playlists" --> S3_Processed
     MediaConvertService -- "Emits Completion Event (e.g., to CloudWatch Events/SNS)" --> ProcessingEvents
     ProcessingEvents -- "Triggers Lambda (or CoreAPIService via webhook/notification)" --> VideoProcessingOrchestrator
-    VideoProcessingOrchestrator -- "Updates Video Status & Metadata in DB" --> CoreAPIService
+    VideoProcessingOrchestrator -- "Updates Video Status & Metadata in DB (via CoreAPIService or directly)" --> CoreAPIService
 %% Or directly updates DB if IAM permissions allow and logic is simple
 
 %% --- Styling (Optional, for better visual separation) ---
@@ -65,7 +65,7 @@ graph TD
     classDef eventbus fill:#E6E6FA,stroke:#333,stroke-width:2px;
 
     class Client client;
-    class CDN,LB,APIGW edge;
+    class CDN,APIGW edge;
     class CoreAPIService app;
     class Cache,DB data;
     class S3_Raw,S3_Processed storage;
