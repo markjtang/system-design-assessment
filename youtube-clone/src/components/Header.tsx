@@ -4,9 +4,11 @@ import '../styles/components/Header.css';
 
 interface HeaderProps {
   onSearch: (query: string) => void;
+  onToggleFavorites: () => void;
+  showFavoritesOnly: boolean;
 }
 
-const Header = ({ onSearch }: HeaderProps) => {
+const Header = ({ onSearch, onToggleFavorites, showFavoritesOnly }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const { favorites } = useFavorites();
 
@@ -35,9 +37,13 @@ const Header = ({ onSearch }: HeaderProps) => {
         </button>
       </form>
       
-      <div className="favorites-count">
+      <button 
+        className={`favorites-count ${showFavoritesOnly ? 'active' : ''}`}
+        onClick={onToggleFavorites}
+        title={showFavoritesOnly ? 'Show all videos' : 'Show only favorites'}
+      >
         ❤️ {favorites.length} favorites
-      </div>
+      </button>
     </header>
   );
 };

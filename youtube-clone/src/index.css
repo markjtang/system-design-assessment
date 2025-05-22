@@ -61,6 +61,17 @@ input {
   padding: 0 1rem;
 }
 
+.no-results {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 3rem 0;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {

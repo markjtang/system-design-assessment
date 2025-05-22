@@ -62,9 +62,24 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background-color: #f8f8f8;
+  border: 1px solid transparent;
   border-radius: 20px;
   font-size: 0.9rem;
   color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.favorites-count:hover {
+  background-color: #f0f0f0;
+  border-color: var(--border-color);
+  transform: translateY(-1px);
+}
+
+.favorites-count.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 @media (max-width: 768px) {
