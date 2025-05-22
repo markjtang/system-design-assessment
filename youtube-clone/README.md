@@ -1,3 +1,47 @@
+# YouTube Clone – React + TypeScript + Vite
+
+A simple YouTube-like video platform built with React, TypeScript, and Vite. This project demonstrates a scrollable list of videos, the ability to favorite videos, and a filter to show only your favorites.
+
+## Features
+
+- **Scrollable video list** with titles and thumbnails
+- **Favorite videos** by clicking the heart icon on any video
+- **Favorites filter**: Click the `❤️ X favorites` button in the header to toggle between all videos and only your favorited videos
+- **Search**: Filter videos by title or channel name
+- **Responsive design**
+- **Favorites are persisted** in your browser (localStorage)
+
+## Usage
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+3. **Open your browser:**
+   Visit [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal)
+
+## How to Use the Favorites Filter
+
+- Click the `❤️ X favorites` button in the top right of the header to show only your favorited videos.
+- The button turns red when the filter is active.
+- Click again to return to all videos.
+- You can also search within your favorites.
+- If you have no favorites, a helpful message will appear.
+
+## Project Structure
+
+- `src/components/` – React components (Header, VideoList, VideoCard, etc.)
+- `src/context/` – React context for managing favorites
+- `src/data/` – Mock video data
+- `src/types/` – TypeScript types
+- `src/styles/` – CSS modules for styling
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
