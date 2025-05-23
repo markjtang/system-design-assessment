@@ -15,8 +15,10 @@ build/
 .env.test.local
 .env.production.local
 
-# Database
-database/
+# Database files (but not source code)
+database/*.db
+database/*.sqlite
+database/*.sqlite3
 *.db
 *.sqlite
 *.sqlite3
