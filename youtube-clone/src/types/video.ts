@@ -11,5 +11,6 @@ export interface Video {
 
 export interface FavoritesContextType {
   favorites: string[];
-  toggleFavorite: (videoId: string) => void;
+  toggleFavorite: (videoId: string) => Promise<void>;
+  loading?: boolean;
 }

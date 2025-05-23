@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFavorites } from '../context/FavoritesContext';
+import DataSourceIndicator from './DataSourceIndicator';
 import '../styles/components/Header.css';
 
 interface HeaderProps {
@@ -37,13 +38,16 @@ const Header = ({ onSearch, onToggleFavorites, showFavoritesOnly }: HeaderProps)
         </button>
       </form>
       
-      <button 
-        className={`favorites-count ${showFavoritesOnly ? 'active' : ''}`}
-        onClick={onToggleFavorites}
-        title={showFavoritesOnly ? 'Show all videos' : 'Show only favorites'}
-      >
-        ❤️ {favorites.length} favorites
-      </button>
+      <div className="header-actions">
+        <DataSourceIndicator />
+        <button 
+          className={`favorites-count ${showFavoritesOnly ? 'active' : ''}`}
+          onClick={onToggleFavorites}
+          title={showFavoritesOnly ? 'Show all videos' : 'Show only favorites'}
+        >
+          ❤️ {favorites.length} favorites
+        </button>
+      </div>
     </header>
   );
 };

@@ -56,6 +56,12 @@
   background-color: #f0f0f0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .favorites-count {
   display: flex;
   align-items: center;
@@ -95,5 +101,9 @@
     order: 3;
     flex: 1 1 100%;
     margin-top: 0.5rem;
+  }
+  
+  .header-actions {
+    gap: 0.5rem;
   }
 }

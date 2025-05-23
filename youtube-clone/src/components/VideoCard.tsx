@@ -11,9 +11,14 @@ const VideoCard = ({ video, onVideoClick }: VideoCardProps) => {
   const { favorites, toggleFavorite } = useFavorites();
   const isFavorite = favorites.includes(video.id);
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFavorite(video.id);
+    try {
+      await toggleFavorite(video.id);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      // Could show a toast notification here
+    }
   };
 
   return (
